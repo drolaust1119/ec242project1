@@ -1,0 +1,162 @@
+---
+title: "ec242project1"
+author: "Austin Drolett"
+date: "2026-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sf)
+library(tmaptools)
+library(tigris)
+library(tidyverse)
+library(here)
+library(ggplot2)
+rats <- read_csv("Rat_sightings.csv")
+head(rats)
+cap_rats <- rats %>% mutate(City = str_to_upper(City))
+head(cap_rats)
+
+```
+
+```{R}
+data <- cap_rats %>% mutate(`Created Date` = mdy_hms(`Created Date`))
+
+data %>% filter(year(`Created Date`) %in% c(2012,2024)) %>% group_by(year(`Created Date`)) %>% summarize(count = n())
+```
+The sum of rat sightings in each Borough
+```{r}
+data %>% group_by(Borough) %>% summarize(count = n())
+```
+Rat sighting count per dwelling type (56 types of locations)
+```{r}
+data %>% group_by(`Location Type`) %>% summarize(count = n())
+```
+By month in the year 2010
+```{r}
+data %>% filter(year(`Created Date`) %in% 2010) %>% group_by(month(`Created Date`)) %>% summarize(count = n())
+```
+
+```{R}
+names(data)
+class(data)
+```
+```{r}
+data_sf <- data %>%
+  drop_na(Longitude, Latitude) %>%
+  st_as_sf(
+    coords = c("Longitude","Latitude"),
+    crs = 4326
+  )
+```
+
+```{r}
+data_sf %>% ggplot() + geom_sf(aes(color = Borough), size = 0.1, alpha = 0.3)+
+  theme_minimal() +
+  labs(
+    title = "Test Title",
+    color = "Borough"
+  )
+```
+
+Filtering which NY Boroughs to use from tigris
+```{r}
+ny_map <- counties(state = "NY", cb = TRUE) %>% filter(NAME %in% c(
+  "Bronx",
+  "Kings",
+  "New York",
+  "Queens",
+  "Richmond"))
+```
+
+Mapping out NYC with Tigris
+```{R}
+ny_map %>%
+  ggplot() +
+  geom_sf(
+    fill = "white",
+    color = "black"
+  ) +
+  theme_minimal()+
+  labs(title = "New York City")
+```
+
+```{R}
+data_sf <- data %>%
+  filter(Longitude >= -77) %>%
+  drop_na(Longitude, Latitude) %>%
+  st_as_sf(
+    coords = c("Longitude", "Latitude"),
+    crs = 4326
+  )
+```
+
+```{r}
+data %>%
+  filter(Longitude < -77) %>%
+  nrow()
+```
+```{r}
+ny_map <- ny_map %>%
+  mutate(
+    borough_name = case_when(
+      NAME == "Kings" ~ "Brooklyn",
+      NAME == "New York" ~ "Manhattan",
+      NAME == "Richmond" ~ "Staten Island",
+      TRUE ~ NAME
+    )
+  )
+```
+
+```{r}
+ggplot() +
+geom_sf(data = ny_map) +
+geom_sf(data = data_sf)
+```
+RAT MAP IN 2012
+```{r}
+rats_2012 <- data_sf %>% filter(year(`Created Date`) == 2012)
+
+ggplot() + 
+  geom_sf(data = ny_map, fill = "gray90", color = "black") +
+  geom_sf(data = rats_2012, color = "blue", size = 0.1, alpha = 0.3) +
+  theme_minimal()+
+  labs(title = "Rat Sightings in NYC (2012)", x = "Longitude", y = "Latitude") +
+  geom_sf_text(
+    data = ny_map,
+    aes(label = borough_name), color = "black" 
+  )
+```
+
+RAT MAP IN 2024
+```{r}
+rats_2024 <- data_sf %>% filter(year(`Created Date`) == 2024)
+
+ggplot() + 
+  geom_sf(data = ny_map, fill = "gray90", color = "black") +
+  geom_sf(data = rats_2024, color = "blue", size = 0.1, alpha = 0.3) +
+  theme_minimal()+
+  labs(title = "Rat Sightings in NYC (2024)", x = "Longitude", y = "Latitude") +
+  geom_sf_text(
+    data = ny_map,
+    aes(label = borough_name), color = "black" 
+  )
+```
+
+MAPPING MONTHLY RATES BETWEEN 2019 AND 2020 #COME BACK TO THIS
+```{r}
+monthly_2019 <-data %>% filter(year(`Created Date`) == 2019) %>% group_by(month(`Created Date`)) %>% summarize(count = n())
+monthly_2020 <- data %>% filter(year(`Created Date`) == 2020) %>% group_by(month(`Created Date`)) %>% summarize(count = n())
+
+combined_monthly <- bind_rows(
+  "2019" = monthly_2019,
+  "2020" = monthly_2020,
+  .id = "year"
+)
+names(combined_monthly)
+
+```
