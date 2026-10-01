@@ -1,0 +1,158 @@
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  html_document: default
+date: "2026-10-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(janitor)
+library(tidyverse)
+library(ggplot2)
+
+rats <- read.csv("Rat_sightings.csv")
+head(rats)
+glimpse(rats)
+names(rats)
+dim(rats)
+colSums(is.na(rats))
+
+```
+```{r}
+
+# Load and clean
+rats <- read_csv(
+  "Rat_sightings.csv",
+  na = c("", "NA"),
+  col_types = cols(
+    `Incident Zip` = col_character(),
+    .default = col_guess()
+  )
+) %>%
+  clean_names() %>%
+  distinct(unique_key, .keep_all = TRUE) %>%
+  mutate(
+    # Convert dates
+    created_date = mdy_hms(created_date),
+    closed_date = mdy_hms(closed_date),
+
+    # Standardize text
+    borough = str_to_title(str_trim(borough)),
+    location_type = str_squish(location_type),
+    descriptor = str_squish(descriptor),
+
+    # Extract useful time variables
+    year = year(created_date),
+    month = month(created_date, label = TRUE, abbr = TRUE),
+    month_num = month(created_date)
+  ) %>%
+  filter(!is.na(created_date))
+
+# Check cleaned data
+glimpse(rats)
+summary(rats)
+```
+```{r}
+
+# Missing values
+colSums(is.na(rats))
+
+# Borough counts
+rats %>%
+  count(borough, sort = TRUE)
+
+# Years represented
+rats %>%
+  count(year, sort = TRUE)
+
+# Location types
+rats %>%
+  count(location_type, sort = TRUE)
+
+# Date range
+range(rats$created_date, na.rm = TRUE)
+```
+
+```{r}
+
+monthly_rats <- rats %>%
+  filter(
+    borough %in% c(
+      "Manhattan", "Brooklyn", "Queens",
+      "Bronx", "Staten Island"
+    )
+  ) %>%
+  group_by(borough, year, month_num) %>%
+  summarize(
+    sightings = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    date = as.Date(
+      paste(year, month_num, "01", sep = "-")
+    )
+  )
+
+# View the summary
+view(monthly_rats)
+```
+
+```{r}
+
+ggplot(
+  monthly_rats,
+  aes(
+    x = date,
+    y = sightings,
+    color = borough
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_vline(
+    xintercept = as.Date("2023-04-01"),
+    linetype = "dashed",
+    color = "black"
+  ) +
+  labs(
+    title = "Monthly Rat Sightings by Borough",
+    subtitle = "NYC 311 complaints, with April 2023 marked",
+    x = "Year",
+    y = "Number of sightings",
+    color = "Borough"
+  ) +
+  theme_minimal()
+```
+```{r}
+rats %>%
+  filter(
+    borough == "Brooklyn",
+    year %in% c(2019, 2020)
+  ) %>%
+  count(year, month_num, month) %>%
+  ggplot(aes(x = month_num, y = n, color = factor(year), group = year)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  scale_x_continuous(
+    breaks = 1:12,
+    labels = month.abb
+  ) +
+  labs(
+    title = "Brooklyn Rat Sightings by Month",
+    subtitle = "2019 vs. 2020",
+    x = "Month",
+    y = "Number of Rat Sightings",
+    color = "Year"
+  ) +
+  theme_minimal()
+```
