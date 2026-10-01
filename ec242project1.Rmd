@@ -147,16 +147,3 @@ ggplot() +
   )
 ```
 
-MAPPING MONTHLY RATES BETWEEN 2019 AND 2020 #COME BACK TO THIS
-```{r}
-monthly_2019 <-data %>% filter(year(`Created Date`) == 2019) %>% group_by(month(`Created Date`)) %>% summarize(count = n())
-monthly_2020 <- data %>% filter(year(`Created Date`) == 2020) %>% group_by(month(`Created Date`)) %>% summarize(count = n())
-
-combined_monthly <- bind_rows(
-  "2019" = monthly_2019,
-  "2020" = monthly_2020,
-  .id = "year"
-)
-names(combined_monthly)
-
-```
