@@ -156,3 +156,10 @@ rats %>%
   ) +
   theme_minimal()
 ```
+The graph above compares the two years with the most similar patterns of rat sightings in Brooklyn, the borough with the highest number of reported sightings. A clear seasonal pattern appears, with sightings increasing during the spring and summer before declining in the fall and winter. This pattern is consistent with research on New York City rat reports, which has found a significant relationship between warmer temperatures and increased reported rat sightings. Warmer weather may increase rat activity and visibility while also increasing the amount of time people spend outdoors, creating more opportunities for rats to be seen and reported.
+
+However, these results should be interpreted as changes in reported sightings, not necessarily changes in the rat population. Human activity, garbage, and other features of the urban environment can also influence where and how often rats are reported. This distinction is important because a decline in 311 reports during colder months does not necessarily mean that the rat population has declined by the same amount.
+
+The seasonal pattern has a potential policy implication for the city. Rather than waiting for complaints to increase, sanitation and rat-control efforts could be increased before the spring and summer months, when reported sightings begin to rise. Using seasonal 311 trends to anticipate periods of increased activity could help the city target resources more efficiently.
+
+https://nflfastr.com
