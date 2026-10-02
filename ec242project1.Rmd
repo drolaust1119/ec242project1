@@ -145,5 +145,24 @@ ggplot() +
     data = ny_map,
     aes(label = borough_name), color = "black" 
   )
-```
 
+
+borough_compare <- data %>%
+  filter(year(`Created Date`) %in% c(2012, 2024)) %>%
+  group_by(
+  year = year(`Created Date`),
+  Borough
+)%>%
+  summarize(
+  sightings = n()
+  )
+
+borough_compare <- borough_compare %>%
+  pivot_wider(
+    names_from = year,
+    values_from = sightings
+  ) %>% mutate(change = `2024` - `2012`)
+
+borough_compare
+```
+New York City reported rat sightings more than doubled between the years 2012 and 2024. The growth between the two years was not evenly distributed. Brooklyn had the largest absolute increase, accounting for about 45% of the total change between the respective years. Manhattan's rat sightings doubled, and Queens' rat sightings nearly tripled. These changes are incredibly large compared to Staten Island's increase of only 139 sightings. Brooklyn's sighting count by itself increased by 183%. The comparison in rat sightings shows that the growth is not evenly distributed across New York City. Looking at the citywide sightings increase does not explain which areas experienced the most drastic changes. Mapping New York City and displaying the frequency of sightings in each borough provide a clearer picture of where the largest changes occurred. These changes suggest that further investigation into boroughs with the largest increases, like Brooklyn in particular, may help identify where reported rat sightings had the most significant changes. The city investigate specific zip codes in Brooklyn to analyze if sightings are most frequent in specific neighborhoods. 
